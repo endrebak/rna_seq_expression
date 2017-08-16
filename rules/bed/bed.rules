@@ -1,0 +1,42 @@
+def compute_internal_exons(exons):
+    """Avoid first and last exon for each transcript."""
+
+    colnames = "#chrom start end name score strand deepTools_group".split()
+
+    info = exons.name.str.split(":|\.", expand=True).iloc[:,[1, 2, 3]]
+    info.columns = "name2 transcript2 exon2".split()
+    info.exon2 = info.exon2.astype(int)
+
+    exons = pd.concat([exons, info], axis=1).sort_values(["transcript2", "exon2"])
+
+    exons = exons.groupby(["name2", "transcript2"]).apply(lambda r: r.iloc[1:-1])
+
+    return exons[colnames].sort_values("deepTools_group").reset_index(drop=True)
+
+
+def get_bed(w):
+    file_template = "data/annotation/{region_type}/annotation.bed"
+    region_type = w.region_type if w.region_type != "internal_exon" else "exon"
+    return file_template.format(region_type=region_type)
+
+
+rule deeptools_bed:
+    input:
+        qs = "data/quantiles/{group}.csv",
+        bed = get_bed
+    output:
+        "data/deeptools/{group}.{region_type}.bed"
+    run:
+        import pandas as pd
+
+        qs = pd.read_table(input.qs, sep=" ", index_col=0)
+        bed = pd.read_table(input.bed, header=0, index_col=6)
+
+        df = bed.join(qs)
+
+        df.columns = "#chrom start end name score strand deepTools_group".split()
+
+        if wildcards.region_type == "internal_exon":
+            df = compute_internal_exons(df)
+
+        df.sort_values("deepTools_group").to_csv(output[0], sep="\t", index=False, header=True)

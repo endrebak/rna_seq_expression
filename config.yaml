@@ -1,0 +1,21 @@
+
+# --------------------------------------
+# RNA seq analysis
+# --------------------------------------
+
+sample_sheet:
+  "sample_sheet.txt"
+
+remote_annotation_gff3:
+  ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_26/gencode.v26.annotation.gff3.gz
+
+region_types:
+  - exon
+  - gene
+  - internal_exon
+
+groups:
+  - WT
+
+quantiles:
+  [.25, .5, .75]

@@ -1,0 +1,7 @@
+rule compute_quantiles:
+    input:
+        "data/featurecounts/{group}.csv"
+    output:
+        "data/quantiles/{group}.csv"
+    script:
+        "../../scripts/compute_quantiles.py"

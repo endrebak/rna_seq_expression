@@ -1,0 +1,23 @@
+rule gff_to_bed:
+    input:
+        "data/annotation/annotation.gff3"
+    output:
+        "data/annotation/{region_type}/annotation_unprocessed.bed"
+    shell:
+        r"gff2bed < {input[0]} | grep -E '\b{wildcards.region_type}\b' "
+        "| cut -f 1-6,10  > {output[0]}"
+
+
+rule get_gene_id:
+    input:
+        "data/annotation/{region_type}/annotation_unprocessed.bed"
+    output:
+        "data/annotation/{region_type}/annotation.bed"
+    run:
+        df = pd.read_table(input[0], header=None,
+                           names="Chromosome Start End Name Score Strand Info".split())
+
+        df.loc[:,"Info"] = df.Info.str.extract("gene_id=(.*?);", expand=False)
+        df.columns = list(df.columns)[:-1] + ["Geneid"]
+
+        df.to_csv(output[0], sep="\t", index=False, header=True)

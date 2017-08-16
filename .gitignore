@@ -1,0 +1,11 @@
+data/
+.snakemake/
+private/
+
+*.#*
+*.pdf
+*.log
+*.bam
+*.pyc
+*.snakemake.*
+*.gz
